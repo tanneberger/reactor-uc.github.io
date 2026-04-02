@@ -3,28 +3,35 @@ icon: lucide/rocket
 ---
 
 !!! warning
-    reactor-uc is still currently under development an initial version will come soon.
+    reactor-uc is still under development. An initial version will be released soon.
 
 # reactor-uc
 
-reactor-uc (pronounced reactor micro-c) is a distributed task scheduling runtime for [Lingua Franca](https://lf-lang.org) targeted at embedded and resource-constrained systems.
+**Distributed task scheduling for embedded systems.** reactor-uc (pronounced "reactor micro-c") is a runtime that brings the [reactor model of computation](https://lf-lang.org) to resource-constrained microcontrollers and embedded devices.
+
+## Why reactor-uc?
+
+The reactor model provides a modern, deterministic approach to concurrent programming—eliminating common pitfalls like race conditions and deadlocks. reactor-uc makes these benefits accessible to embedded systems where resources are limited and reliability is critical.
 
 ## Lingua Franca Language
 
 ![Image](assets/logos/lf.svg#only-light){ width="150" }
 ![Image](assets/logos/lf_white.svg#only-dark){ width="150" }
 
-The Lingua Franca (LF) language is a new domain specific language (DSL) especially designed to expresss programs
-of the reactor MoC. reactor-uc is a runtime that facilitates the execution of LF programs on micro controllers.
-You can find out more about the language on its [website](https://lf-lang.org), inside this documentation we primarily
-focus on runtime aspects like the annotations, platform integration, or federated execution.
+[Lingua Franca](https://lf-lang.org) is a domain-specific language designed from the ground up to express reactive, concurrent systems using the reactor model of computation. reactor-uc is the execution runtime that enables LF programs to run efficiently on microcontrollers and embedded platforms.
+
+Learn more on the [Lingua Franca website](https://lf-lang.org).
+
+## Get Started
+
+Ready to explore reactor-uc? Check out our [quickstart guide](./quickstart.md) or dive into the [documentation](./docs.md).
 
 !!! tip
-    This project is looking for collaborators, users, and industry partners to fully realize the potential of the reactor model for embedded systems. 
-    Please reach out to us!
-
+    This project is looking for collaborators, users, and industry partners to fully realize the potential of the reactor model for embedded systems. Please [reach out to us](https://lf-lang.org/contact)!
 
 ## International Community
+
+Built by researchers and engineers from leading institutions worldwide:
 
 <div class="row" markdown>
 <div class="logo" markdown>
