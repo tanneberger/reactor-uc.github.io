@@ -1,15 +1,67 @@
-# Code Generation and Compilation 
+# Code Generation and Compilation
 
-The design of systems with reactor-uc and LF follows a top-down design approach, where the programmer starts with his design written in LF. The LF compiler (lfc) translates your design into C code. This generated code uses the reactor-uc runtime functions to execute the program. When you create federated (distributed) programs, lfc generates subfolders for each federate (node) in your system. The goal of reactor-uc is to enable integration into existing toolchains. For example, for projects based on Zephyr, we provide lfc-integration through a custom west command. When building an application the programmer interacts with west as usual, and west calls lfc to generate C code from the LF source files, finally west uses CMake to configure and build the final executable. Another example is RIOT OS, which has a Make-based toolchain. For RIOT we integrate lfc into the application Makefile such that calling make all first invokes lfc on the LF sources before compiling the generated sources.
+The design of systems with reactor-uc and Lingua Franca (LF) follows a top-down approach, where the programmer starts with a design written in the LF language. The LF compiler (lfc) translates this design into C code that uses the reactor-uc runtime library for execution. This generated code is platform-agnostic and can be compiled for various embedded and resource-constrained systems.
 
+## Code Generation Process
+
+The LF compiler (lfc) is the code-generator that transforms LF source files into C code. lfc analyzes the reactor model, performs optimizations, and generates:
+
+- Reactor definitions and connections
+- Event scheduling logic
+- Platform-specific initialization code
+- Network communication code for federated systems
+
+For federated (distributed) programs, lfc generates separate subfolders for each federate, containing the necessary code and build files for that node.
+
+## reactor-uc Runtime Library
+
+reactor-uc is technically a runtime library written in C, providing the core execution engine for the reactor model. It implements:
+
+- Event-driven scheduling
+- Logical time management
+- Network communication protocols
+- Platform abstraction layers
+
+The library is highly configurable through compile-time flags, allowing it to be tailored for specific platforms and use cases without runtime overhead. Common configuration options include:
+
+- **Logging levels**: Control verbosity for debugging and monitoring
+- **Platform features**: Enable/disable platform-specific optimizations
+- **Network protocols**: Select supported communication interfaces
+- **Memory management**: Configure buffer sizes and allocation strategies
+
+## Build System Integration
+
+reactor-uc enables seamless integration into existing toolchains. The generated code includes importable build files (CMake or Makefiles) that can be incorporated into your project's build system.
+
+### Zephyr Integration
+
+For Zephyr-based projects, lfc provides integration through a custom west command. The build process follows the standard Zephyr workflow:
+
+1. west calls lfc to generate C code from LF sources
+2. Generated code is compiled alongside reactor-uc library
+3. west uses CMake to configure and build the final executable
+
+### RIOT OS Integration
+
+For RIOT OS projects with Make-based toolchains, lfc is integrated into the application Makefile:
+
+1. `make all` first invokes lfc on LF sources
+2. Generated sources are compiled with the reactor-uc library
+3. Standard RIOT build process produces the binary
+
+### Other Platforms
+
+For common platforms like Raspberry Pi Pico (pico-sdk), we provide build templates that simplify integration. The generated CMake files can be imported directly into your project's build configuration.
 
 ``` mermaid
 graph LR
-  A[Platform Tooling] --> B;
-  B[LFG] -->|Success| C;
-  C[Generated Code] --> D;
-  D[Cross Compiler] --> E[Binary];
-  F[reactor-uc] --> D;
+  A[LF Source Files] --> B[lfc Code Generator];
+  B -->|Generates C Code| C[Platform-Specific Code];
+  D[reactor-uc Library] --> E[Configured with Compile Flags];
+  C --> F[Build System];
+  E --> F;
+  F --> G[Cross Compiler];
+  G --> H[Binary];
 ```
 
-lfc produces importable CMake and make files that you can import into your build-system. For common platforms like Zephyr, RIOT or the pico-sdk we provide build-templates.
+This approach ensures that reactor-uc applications can be built using familiar tools while benefiting from the deterministic execution guarantees of the reactor model.

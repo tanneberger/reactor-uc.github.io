@@ -24,7 +24,7 @@ Learn more on the [Lingua Franca website](https://lf-lang.org).
 
 ## Get Started
 
-Ready to explore reactor-uc? Check out our [quickstart guide](./quickstart.md) or dive into the [documentation](./docs.md).
+Ready to explore reactor-uc? Check out our [getting-started guide](./getting-started/index.md) or dive into the [documentation](./documentation/reaction_api.md).
 
 !!! tip
     This project is looking for collaborators, users, and industry partners to fully realize the potential of the reactor model for embedded systems. Please [reach out to us](https://lf-lang.org/contact)!
