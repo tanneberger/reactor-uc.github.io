@@ -2,6 +2,67 @@
 
 Annotations in reactor-uc allow you to configure reactor components, specify platform details, and set up network communication. They refine system behavior and enable runtime optimizations across different hardware platforms.
 
+## Build Configuration
+
+Configure how the reactor system is compiled and built.
+
+- **`@build_type("<type>")`**
+    
+    Specifies the build type for compilation optimization and debug symbols. This is only supported for the `Native` platform. 
+    
+    **Valid values:**
+
+    - `"DEBUG"`: Include debug symbols and disable optimizations
+    - `"RELEASE"`: Enable optimizations and omit debug symbols
+
+## Runtime Configuration
+
+Configure global runtime behavior and system-wide options.
+
+- **`@logging("<level>")`**
+    
+    Sets the logging verbosity level for the runtime system.
+    
+    **Valid values:**
+
+    - `"ERROR"`: Only log errors
+    - `"WARN"`: Log warnings and errors
+    - `"INFO"`: Log general information
+    - `"DEBUG"`: Log detailed debug information
+
+- **`@timeout(<time_value>)`**
+    
+    Specifies a global timeout for reactor execution. The program will shutdown after this amount of logical time.
+    
+    **Parameters:**
+
+    - `<time_value>`: Logical time duration in appropriate time unit (e.g., `MSEC(5000)`, `SEC(5)`)
+
+- **`@fast(<boolean>)`**
+    
+    When enabled, the reactor system runs as fast as possible without waiting for physical time to advance. Useful for simulation and testing.
+    
+    **Parameters:**
+
+    - `<boolean>`: `true` to enable fast execution, `false` for real-time execution
+
+- **`@keepalive(<boolean>)`**
+    
+    Controls whether the reactor keeps running when there are no more scheduled events. When disabled, the reactor may shut down prematurely.
+    
+    **Parameters:**
+
+    - `<boolean>`: `true` to keep the reactor alive, `false` to allow shutdown
+
+- **`@clock_sync("<mode>")`**
+    
+    Globally enables or disables clock synchronization across a federation.
+    
+    **Valid values:**
+
+    - `"on"`: Enable clock synchronization
+    - `"off"`: Disable clock synchronization
+
 ## Reactor Components
 
 Annotations for configuring individual reactor components and connections.
@@ -11,7 +72,6 @@ Annotations for configuring individual reactor components and connections.
     Specifies the maximum number of elements that can be queued in a logical action's buffer. This controls memory usage and prevents unbounded growth of pending events.
     
     **Parameters:**
-
     - `<number>`: Maximum queue size (positive integer)
 
 - **`@buffer(<number>)`**
@@ -24,7 +84,25 @@ Annotations for configuring individual reactor components and connections.
 
 ## Platform Configuration
 
-These annotations specify which platforms a federate should be compiled for in multi-platform federations.
+Specify which platforms a federate should be compiled for in multi-platform federations.
+
+- **`@platform("<platform_name>")`**
+    
+    Generic platform annotation for specifying target platforms.
+    
+    **Valid platforms:**
+    - `"NATIVE"`: Native/Linux platform
+    - `"PICO"`: Raspberry Pi Pico
+    - `"ZEPHYR"`: Zephyr RTOS
+    - `"RIOT"`: RIOT OS
+    - `"FLEXPRET"`: FlexPRET
+    - `"PATMOS"`: Patmos hardware
+    - `"ESP-IDF"`: ESP-IDF framework
+    - `"FREERTOS"`: FreeRTOS
+
+
+??? warning
+    These annotations may be deprecated.
 
 - **`@platform_riot()`** - Compile for RIOT OS
 - **`@platform_zephyr()`** - Compile for Zephyr RTOS
@@ -40,7 +118,6 @@ Configure communication channels between federates using various network protoco
     TCP/IP network interface for federate communication.
     
     **Parameters:**
-
     - `name`: Interface identifier
     - `address`: Host and port (format: "host:port")
 
@@ -93,18 +170,20 @@ Configure how federates communicate across network interfaces.
     
     Specifies which network interfaces to use for transmitting values between federates. The `left` and `right` refer to previously defined interface names.
 
-- **`@maxwait(time)`**
+- **`@maxwait(<time_value>)`**
     
     Maximum time a federate should wait for a value from a remote federate on a network channel. Helps prevent indefinite blocking in case of communication failures.
+    
+    **Parameters:**
+    - `<time_value>`: Duration (e.g., `MSEC(100)`, `SEC(1)`)
 
 - **`@joining_policy(policy="<policy>")`**
     
     Controls how federates synchronize when joining a federation.
     
     **Policies:**
-
-    * `"TIMER_ALIGNED"`: Synchronize to a common time reference
-    * `"IMMEDIATELY"`: Begin execution immediately
+    - `"TIMER_ALIGNED"`: Synchronize to a common time reference
+    - `"IMMEDIATELY"`: Begin execution immediately
 
 ## Clock Synchronization
 
@@ -112,7 +191,7 @@ Configure distributed clock synchronization across federated systems.
 
 - **`@clock_sync(grandmaster=true, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)`**
     
-    Enable and configure clock synchronization using a PTP-like protocol.
+    Enable and configure clock synchronization using a PTP-like protocol for precise time alignment across federates.
     
     **Parameters:**
     
