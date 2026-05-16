@@ -1,0 +1,46 @@
+/**
+ * Diagram: Multicast Output Pattern
+ * Source: docs/design/reactor-model.md
+ *
+ * Illustrates one-to-many communication where a single output port
+ * from Reactor A broadcasts to multiple input ports of Reactor B and C.
+ */
+target uC
+
+reactor ReactorA {
+    output out: int
+
+    timer t(0, 100 msec)
+    state count: int = 0
+
+    reaction(t) -> out {=
+        lf_set(out, self->count++);
+    =}
+}
+
+reactor ReactorB {
+    input in: int
+
+    reaction(in) {=
+        printf("ReactorB received: %d\n", in->value);
+    =}
+}
+
+reactor ReactorC {
+    input in: int
+
+    reaction(in) {=
+        printf("ReactorC received: %d\n", in->value);
+    =}
+}
+
+@platform("native")
+main reactor {
+    a = new ReactorA()
+    b = new ReactorB()
+    c = new ReactorC()
+
+    // Single output connects to multiple inputs (multicast)
+    a.out -> b.in
+    a.out -> c.in
+}

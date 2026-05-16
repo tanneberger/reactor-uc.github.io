@@ -1,29 +1,74 @@
-name: Documentation
+name: docs
+
 on:
   push:
     branches:
-      - master
       - main
+  pull_request:
+    branches:
+      - main
+
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
+
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/configure-pages@v5
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
-      - run: pip install zensical
-      - run: zensical build --clean
-      - uses: actions/upload-pages-artifact@v4
+          python-version: "3.x"
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
         with:
-          path: site
-      - uses: actions/deploy-pages@v4
-        id: deployment
+          key: mkdocs-material-${{ hashFiles('requirements.txt') }}
+          path: ~/.cache
+          restore-keys: |
+            mkdocs-material-
+
+      - name: Install dependencies
+        run: |
+          pip install mkdocs-material
+          pip install mkdocs-minify-plugin
+          pip install mkdocs-glightbox
+          pip install pillow cairosvg
+
+      - name: Build docs
+        run: mkdocs build --strict
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ hashFiles('requirements.txt') }}
+          path: ~/.cache
+          restore-keys: |
+            mkdocs-material-
+
+      - name: Install dependencies
+        run: |
+          pip install mkdocs-material
+          pip install mkdocs-minify-plugin
+          pip install mkdocs-glightbox
+          pip install pillow cairosvg
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force

@@ -1,0 +1,35 @@
+/**
+ * Diagram: Simple Port Connection Between Two Reactors
+ * Source: docs/design/reactor-model.md
+ *
+ * Shows two reactors connected via a logical connection.
+ * Reactor A has an output port, Reactor B has an input port.
+ */
+target uC
+
+reactor ReactorA {
+    output out: int
+
+    timer t(0, 100 msec)
+    state count: int = 0
+
+    reaction(t) -> out {=
+        lf_set(out, self->count++);
+    =}
+}
+
+reactor ReactorB {
+    input in: int
+
+    reaction(in) {=
+        printf("ReactorB received: %d\n", in->value);
+    =}
+}
+
+@platform_native
+main reactor {
+    a = new ReactorA()
+    b = new ReactorB()
+
+    a.out -> b.in
+}

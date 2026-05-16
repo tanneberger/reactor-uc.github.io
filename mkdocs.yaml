@@ -1,0 +1,154 @@
+site_name: reactor-uc
+site_url: https://micro-lf.org
+repo_url: https://github.com/lf-lang/reactor-uc
+repo_name: lf-lang/reactor-uc
+edit_uri: edit/main/docs/docs/
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started/index.md
+  - Philosophy:
+    - design/index.md
+    - The Reactor Model: design/reactor-model.md
+    - Time and Determinism: design/time-model.md
+    - Scheduling: design/scheduling.md
+    - Memory Management: design/memory.md
+    - Platform Abstraction: design/platform.md
+    - Code Generation: design/building.md
+    - Federated Execution: design/federated.md
+  - Documentation:
+    - Annotations: documentation/annotations.md
+    - Reaction API: documentation/reaction_api.md
+    - Compile Flags: documentation/compile-flags.md
+  - Examples:
+    - NXP FRDM-K64F: projects/nxp-frdm-k64f.md
+    - Redundant Picos: projects/redundant-picos.md
+  - Platforms:
+    - platforms/index.md
+    - Zephyr: platforms/zephyr/index.md
+    - RIOT: platforms/riot/index.md
+    - Raspberry Pi Pico: platforms/pico/index.md
+    - FreeRTOS: platforms/freertos/index.md
+    - ESP-IDF: platforms/esp-idf/index.md
+    - Patmos: platforms/patmos/index.md
+
+theme:
+  name: material
+  logo: assets/logos/lf-white.svg
+  favicon: assets/logos/favicon.png
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+  palette:
+    # Palette toggle for automatic mode
+    - media: '(prefers-color-scheme)'
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to system preference
+
+  font:
+    text: DM Sans
+    code: DM Mono
+  features:
+    # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
+    - navigation.expand
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.prune
+    - navigation.footer
+    - toc.follow
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - header.autohide
+    - content.action.edit
+    - content.code.copy
+    - content.tabs.link
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/lf-lang/reactor-uc
+
+copyright: >
+  Copyright &copy; 2024 - 2025 reactor-uc Contributors
+
+plugins:
+  - privacy
+  - social:
+      cards_layout_options:
+        logo: docs/assets/logos/lf.svg
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+  # https://github.com/blueswen/mkdocs-glightbox#usage
+  - glightbox:
+      width: 80%
+
+markdown_extensions:
+  - pymdownx.critic
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - def_list
+  - footnotes
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: "#"
+
+validation:
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra_css:
+  - stylesheets/extra.css
+
+exclude_docs: |
+  venv

@@ -101,8 +101,8 @@ Specify which platforms a federate should be compiled for in multi-platform fede
     - `"FREERTOS"`: FreeRTOS
 
 
-??? warning
-    These annotations may be deprecated.
+!!! warning "Deprecation Notice"
+    These annotations may be deprecated in a future release.
 
 - **`@platform_riot()`** - Compile for RIOT OS
 - **`@platform_zephyr()`** - Compile for Zephyr RTOS
@@ -111,7 +111,15 @@ Specify which platforms a federate should be compiled for in multi-platform fede
 
 ## Network Interfaces
 
-Configure communication channels between federates using various network protocols.
+Define physical network interfaces on federates. These annotations are translated by the code generator into **network channels** (e.g., TCP/IP sockets, UART links). Use the `@link` annotation on LF connections to specify which network channel should carry the data.
+
+**Workflow:**
+
+1. Define interfaces on each federate using `@interface_*` annotations
+2. Use `@link` on LF connections to bind them to specific network channels
+3. Multiple LF connections can be multiplexed over a single network channel
+
+For practical examples and usage patterns, see [Federated Execution - Configuring Network Interfaces](../design/federated.md#configuring-network-interfaces).
 
 - **`@interface_tcp(name="string", address="127.0.0.1:4200")`**
     
@@ -164,18 +172,69 @@ Configure communication channels between federates using various network protoco
 
 ## Network Configuration
 
-Configure how federates communicate across network interfaces.
+Configure how LF connections are mapped to network channels. These annotations work together with [Network Interfaces](#network-interfaces) to establish federated communication.
 
-- **`@link(left="tcp0", right="tcp1")`**
-    
-    Specifies which network interfaces to use for transmitting values between federates. The `left` and `right` refer to previously defined interface names.
+For a comprehensive overview of federated execution, see [Federated Execution](../design/federated.md).
+
+- **`@link(left="<interface>", right="<interface>", ...)`**
+
+    Binds an LF connection (logical connection between reactor ports) to a specific network channel. This annotation tells the code generator that the following LF connection should be transmitted over the specified network interfaces (defined via `@interface_*` annotations).
+
+    Multiple LF connections can share the same network channel by using the same `@link` configuration - they will be multiplexed over a single physical connection.
+
+    **Parameters:**
+
+    - `left`: Name of the interface on the sending (upstream) federate
+    - `right`: Name of the interface on the receiving (downstream) federate
+    - `server_side` (optional): Which side acts as server (`"left"` or `"right"`)
+    - `server_port` (optional): Port number for the server
+
+    **Example:**
+    ```lf
+    federated reactor {
+      @interface_tcp(name="if1", address="127.0.0.1")
+      r1 = new Src()
+
+      @interface_tcp(name="if1", address="127.0.0.1")
+      r2 = new Dst()
+
+      // This LF connection will use the TCP network channel
+      @link(left="if1", right="if1", server_side="right", server_port=1042)
+      r1.out -> r2.in
+    }
+    ```
+
+    For more details, see [Federated Execution - Configuring Network Interfaces](../design/federated.md#configuring-network-interfaces).
 
 - **`@maxwait(<time_value>)`**
-    
-    Maximum time a federate should wait for a value from a remote federate on a network channel. Helps prevent indefinite blocking in case of communication failures.
-    
+
+    Controls how long a federate waits for messages from neighboring federates before advancing to a new tag. This is checked during tag acquisition: if an input connection hasn't received a message for the requested tag (`last_known_tag < next_tag`), the scheduler waits up to `maxwait` before proceeding.
+
+    This is distinct from STP (Safe-To-Process) violations, which occur when a message arrives for a tag that has already been processed.
+
+    Can be applied to:
+
+    - **Federate instantiations**: Sets the baseline maxwait for all incoming connections
+    - **Individual connections**: Overrides the baseline for specific connections
+
     **Parameters:**
-    - `<time_value>`: Duration (e.g., `MSEC(100)`, `SEC(1)`)
+
+    - `<time_value>`: Duration (e.g., `100 ms`, `1 sec`) or special values:
+        - `0`: No waiting; advance immediately regardless of unresolved inputs
+        - `forever`: Wait indefinitely until a message arrives for the tag
+
+    **Example:**
+    ```lf
+    federated reactor {
+      r1 = new Src()
+      @maxwait(0)        // Baseline: no waiting
+      r2 = new Dst()
+      @maxwait(forever)  // Override: wait indefinitely for this connection
+      r1.out -> r2.in
+    }
+    ```
+
+    For detailed usage, see [Federated Execution - Tag Acquisition and @maxwait](../design/federated.md#tag-acquisition-and-maxwait).
 
 - **`@joining_policy(policy="<policy>")`**
     

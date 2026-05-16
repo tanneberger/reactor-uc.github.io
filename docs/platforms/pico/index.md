@@ -1,8 +1,88 @@
-# Raspberry PI Pico
+# Raspberry Pi Pico
 
-![Image](../../assets/images/pico.jpg){width="150px"}
+- **Template**: [lf-pico-uc-template](https://github.com/lf-lang/lf-pico-uc-template)
+- **Pico SDK**: [github.com/raspberrypi/pico-sdk](https://github.com/raspberrypi/pico-sdk/)
+- **Documentation**: [raspberrypi.com/documentation/pico-sdk](https://www.raspberrypi.com/documentation/pico-sdk/)
+- **Supported Boards**: [Pico Series](https://www.raspberrypi.com/documentation/microcontrollers/pico-series.html)
 
-- **Git:** <https://github.com/raspberrypi/pico-sdk/>
-- **Supported Boards:** <https://www.raspberrypi.com/documentation/microcontrollers/pico-series.html>
-- **Documentation:** <https://www.raspberrypi.com/documentation/pico-sdk/>
+## Prerequisites
 
+Install the ARM toolchain: [Install ARM Cross-Compiler](https://www.lf-lang.org/embedded-lab/Non-Nix.html#install-cmake-standard-c-library-arm-cross-compiler)
+
+Install picotool: [Install Picotool](https://www.lf-lang.org/embedded-lab/Non-Nix.html#install-picotool)
+
+## Setup
+
+Clone and initialize submodules:
+
+```bash
+git clone https://github.com/lf-lang/lf-pico-uc-template.git my-project
+cd my-project
+git submodule update --init --recursive
+```
+
+## Building
+
+Configure and build:
+
+```bash
+cmake -Bbuild
+cmake --build build -j $(nproc)
+```
+
+This creates `build/Blink.elf`.
+
+## Flashing
+
+Put the Pico into BOOTSEL mode (hold BOOTSEL while connecting USB), then:
+
+```bash
+picotool load -x build/Blink.elf
+```
+
+## Changing the Application
+
+Edit `LF_MAIN` in `CMakeLists.txt` or via command line:
+
+```bash
+cmake -Bbuild -DLF_MAIN=Timer
+cmake --build build -j $(nproc)
+```
+
+## Log Level
+
+```bash
+cmake -Bbuild -DLOG_LEVEL=LF_LOG_LEVEL_DEBUG
+```
+
+## Board Variants
+
+For Pico 2 (RP2350):
+
+```bash
+export PICO_BOARD=pico2
+cmake -Bbuild
+```
+
+For Pico W:
+
+```bash
+export PICO_BOARD=pico_w
+cmake -Bbuild
+```
+
+## Cleaning
+
+```bash
+rm -rf src-gen build
+```
+
+## Network Channels
+
+| Channel | Mode | Description |
+|---------|------|-------------|
+| UART | Polled | Serial point-to-point |
+
+## Debugging
+
+See [Getting Started](getting-started.md) for detailed debugging instructions using picoprobe and OpenOCD.

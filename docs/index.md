@@ -1,55 +1,157 @@
----
-icon: lucide/rocket
----
-
-!!! warning
-    reactor-uc is still under development. An initial version will be released soon.
-
 # reactor-uc
 
-**Distributed task scheduling for embedded systems.** reactor-uc (pronounced "reactor micro-c") is a runtime that brings the [reactor model of computation](https://lf-lang.org) to resource-constrained microcontrollers and embedded devices.
+**Deterministic concurrency for embedded systems.** reactor-uc brings the [reactor model of computation](https://lf-lang.org) to resource-constrained microcontrollers—eliminating race conditions, deadlocks, and non-determinism.
 
-## Why reactor-uc?
+## Key Features
 
-The reactor model provides a modern, deterministic approach to concurrent programming—eliminating common pitfalls like race conditions and deadlocks. reactor-uc makes these benefits accessible to embedded systems where resources are limited and reliability is critical.
+<div class="grid cards" markdown>
 
-## Lingua Franca Language
+-   :material-sync:{ .lg .middle } **Deterministic Concurrency**
 
-![Image](assets/logos/lf.svg#only-light){ width="150" }
-![Image](assets/logos/lf_white.svg#only-dark){ width="150" }
+    ---
 
-[Lingua Franca](https://lf-lang.org) is a domain-specific language designed from the ground up to express reactive, concurrent systems using the reactor model of computation. reactor-uc is the execution runtime that enables LF programs to run efficiently on microcontrollers and embedded platforms.
+    Logical time ensures reproducible behavior. Given the same inputs, your program produces the same outputs—every time.
 
-Learn more on the [Lingua Franca website](https://lf-lang.org).
+-   :material-memory:{ .lg .middle } **Resource Efficient**
+
+    ---
+
+    No dynamic allocation at runtime. All memory is pre-allocated, making reactor-uc suitable for safety-critical systems.
+
+-   :material-chip:{ .lg .middle } **Multi-Platform**
+
+    ---
+
+    Write once, run on Zephyr, RIOT, FreeRTOS, ESP-IDF, Raspberry Pi Pico, or bare metal with minimal changes.
+
+-   :material-lan:{ .lg .middle } **Federated Execution**
+
+    ---
+
+    Distribute reactors across multiple nodes while maintaining determinism through coordinated scheduling.
+
+</div>
+
+## Supported Platforms
+
+<div class="grid cards" markdown>
+
+-   ![Zephyr](assets/logos/zephyr.svg){: style="height:48px"}
+
+    ---
+
+    [:octicons-arrow-right-24: Zephyr](platforms/zephyr/index.md)
+
+-   ![RIOT](assets/logos/RIOT.png){: style="height:48px"}
+
+    ---
+
+    [:octicons-arrow-right-24: RIOT](platforms/riot/index.md)
+
+-   ![Pico](assets/logos/pico.svg){: style="height:48px"}
+
+    ---
+
+    [:octicons-arrow-right-24: Pico](platforms/pico/index.md)
+
+-   ![FreeRTOS](assets/logos/freertos.svg){: style="height:48px"}
+
+    ---
+
+    [:octicons-arrow-right-24: FreeRTOS](platforms/freertos/index.md)
+
+</div>
+
+## Lingua Franca
+
+<div class="grid" markdown>
+
+<div markdown>
+
+![Lingua Franca](assets/logos/lf.svg#only-light){ width="120" }
+![Lingua Franca](assets/logos/lf_white.svg#only-dark){ width="120" }
+
+</div>
+
+<div markdown>
+
+[Lingua Franca](https://lf-lang.org) is a polyglot coordination language for building deterministic, concurrent systems. reactor-uc is the embedded runtime that enables LF programs to run efficiently on microcontrollers.
+
+[:octicons-arrow-right-24: Learn more at lf-lang.org](https://lf-lang.org)
+
+</div>
+
+</div>
+
+## Quick Example
+
+A simple blinky reactor that toggles an LED every 500ms:
+
+```lf
+target uC
+
+main reactor {
+  timer t(0, 500 ms)
+  state led_on: bool = false
+
+  reaction(startup) {=
+    // Initialize LED GPIO
+  =}
+
+  reaction(t) {=
+    self->led_on = !self->led_on;
+    // Toggle LED
+  =}
+}
+```
 
 ## Get Started
 
-Ready to explore reactor-uc? Check out our [getting-started guide](./getting-started/index.md) or dive into the [documentation](./documentation/reaction_api.md).
+<div class="grid cards" markdown>
 
-!!! tip
-    This project is looking for collaborators, users, and industry partners to fully realize the potential of the reactor model for embedded systems. Please [reach out to us](https://lf-lang.org/contact)!
+-   **Getting Started**
 
-## International Community
+    ---
+
+    Set up your first reactor-uc project with our step-by-step guide.
+
+    [:octicons-arrow-right-24: Getting Started](getting-started/index.md)
+
+-   **Philosophy**
+
+    ---
+
+    Understand the reactor model, logical time, and deterministic concurrency.
+
+    [:octicons-arrow-right-24: Design Philosophy](design/index.md)
+
+-   **Documentation**
+
+    ---
+
+    API reference, annotations, and compile flags.
+
+    [:octicons-arrow-right-24: Documentation](documentation/annotations.md)
+
+</div>
+
+## Community
 
 Built by researchers and engineers from leading institutions worldwide:
 
-<div class="row" markdown>
-<div class="logo" markdown>
-![Image](assets/logos/tud.svg#only-light){ width="150" }
-![Image](assets/logos/tud_white.svg#only-dark){ width="150" }
-</div>
-<div markdown>
-![Image](assets/logos/berkeley.svg#only-light){ width="150" }
-![Image](assets/logos/berkeley_white.svg#only-dark){ width="150" }
-</div>
-<div markdown>
-![Image](assets/logos/dtu.svg#only-light){ width="45" }
-![Image](assets/logos/dtu.svg#only-dark){ width="45" }
-</div>
-<div markdown>
-![Image](assets/logos/verona.svg#only-light){ width="75" }
-![Image](assets/logos/verona.svg#only-dark){ width="75" }
-</div>
+<div class="grid" markdown>
+
+![TU Dresden](assets/logos/tud.svg#only-light){ width="150" }
+![TU Dresden](assets/logos/tud_white.svg#only-dark){ width="150" }
+
+![UC Berkeley](assets/logos/berkeley.svg#only-light){ width="150" }
+![UC Berkeley](assets/logos/berkeley_white.svg#only-dark){ width="150" }
+
+![DTU](assets/logos/dtu.svg){ width="45" }
+
+![University of Verona](assets/logos/verona.svg){ width="75" }
 
 </div>
 
+!!! tip "Join Us"
+    This project is looking for collaborators, users, and industry partners to fully realize the potential of the reactor model for embedded systems. Please [reach out to us](https://lf-lang.org/contact)!

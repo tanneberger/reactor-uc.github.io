@@ -1,0 +1,52 @@
+/**
+ * Diagram: Hierarchical Port Forwarding
+ * Source: docs/design/reactor-model.md
+ *
+ * Demonstrates port forwarding across hierarchy boundaries.
+ * Shows a Parent Reactor containing Child A and Child B,
+ * with input forwarding to Child B and output forwarding from Child B.
+ */
+target uC
+
+reactor ChildA {
+    output out: int
+
+    reaction(startup) -> out {=
+        lf_set(out, 10);
+    =}
+}
+
+reactor ChildB {
+    input in1: int    // From sibling Child A
+    input in2: int    // Forwarded from parent input
+    output out: int   // Forwarded to parent output
+
+    reaction(in1, in2) -> out {=
+        int sum = 0;
+        if (lf_is_present(in1)) sum += in1->value;
+        if (lf_is_present(in2)) sum += in2->value;
+        lf_set(out, sum);
+    =}
+}
+
+reactor Parent {
+    input in: int     // External input, forwarded to Child B
+    output out: int   // External output, forwarded from Child B
+
+    a = new ChildA()
+    b = new ChildB()
+
+    // Connection between siblings
+    a.out -> b.in1
+
+    // Port forwarding: parent input -> child input
+    in -> b.in2
+
+    // Port forwarding: child output -> parent output
+    b.out -> out
+}
+
+@platform_native
+main reactor {
+    parent = new Parent()
+}

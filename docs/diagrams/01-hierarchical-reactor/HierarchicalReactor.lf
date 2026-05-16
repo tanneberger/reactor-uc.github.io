@@ -1,0 +1,32 @@
+/**
+ * Diagram: Hierarchical Reactor Structure
+ * Source: docs/design/reactor-model.md
+ *
+ * Shows a parent reactor containing two child reactors
+ * with a connection between them.
+ */
+target uC
+
+reactor ChildA {
+    output out: int
+
+    reaction(startup) -> out {=
+        lf_set(out, 42);
+    =}
+}
+
+reactor ChildB {
+    input in: int
+
+    reaction(in) {=
+        printf("ChildB received: %d\n", in->value);
+    =}
+}
+
+@platform_native
+main reactor Parent {
+    a = new ChildA()
+    b = new ChildB()
+
+    a.out -> b.in
+}

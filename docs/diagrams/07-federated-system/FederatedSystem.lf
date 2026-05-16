@@ -1,0 +1,67 @@
+/**
+ * Diagram: Federated Reactor System
+ * Source: docs/design/federated.md
+ *
+ * Shows a distributed system with two Federates (A and B)
+ * connected across a network. Each federate contains multiple reactors.
+ */
+target uC
+
+// Reactors in Federate A
+reactor Reactor1 {
+    output out: int
+
+    timer t(0, 100 msec)
+    state count: int = 0
+
+    reaction(t) -> out {=
+        lf_set(out, self->count++);
+    =}
+}
+
+reactor Reactor2 {
+    input in: int
+
+    reaction(in) {=
+        printf("Reactor2 (local): %d\n", in->value);
+    =}
+}
+
+// Reactors in Federate B
+reactor Reactor3 {
+    input in: int
+    output out: int
+
+    reaction(in) -> out {=
+        printf("Reactor3 received from Federate A: %d\n", in->value);
+        lf_set(out, in->value * 2);
+    =}
+}
+
+reactor Reactor4 {
+    input in: int
+
+    reaction(in) {=
+        printf("Reactor4 final: %d\n", in->value);
+    =}
+}
+
+// Federated main reactor
+federated reactor {
+    // Federate A
+    @platform_native
+    r1 = new Reactor1()
+
+    // Federate B
+    @platform_native
+    @maxwait(100 msec)
+    r3 = new Reactor3()
+    @platform_native
+    r4 = new Reactor4()
+
+    // Connection crossing federation boundary (over network)
+    r1.out -> r3.in
+
+    // Local connections within Federate B
+    r3.out -> r4.in
+}
