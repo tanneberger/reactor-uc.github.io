@@ -1,0 +1,105 @@
+/**
+ * Diagram: Main Reactor Hierarchy Tree
+ * Source: docs/design/reactor-model.md
+ *
+ * Tree-structured hierarchy showing:
+ * - Main Reactor (root)
+ *   - Sensor Reactor (with ADC and Filter children)
+ *   - Controller Reactor
+ *   - Actuator Reactor (with PWM and Safety children)
+ */
+target uC
+
+// Leaf reactors in the Sensor subsystem
+reactor ADCReactor {
+    output reading: int
+
+    timer sample(0, 10 msec)
+    state value: int = 0
+
+    reaction(sample) -> reading {=
+        lf_set(reading, self->value++);
+    =}
+}
+
+reactor FilterReactor {
+    input raw: int
+    output filtered: int
+
+    state last: int = 0
+
+    reaction(raw) -> filtered {=
+        // Simple low-pass filter
+        int result = (self->last + raw->value) / 2;
+        self->last = raw->value;
+        lf_set(filtered, result);
+    =}
+}
+
+// Composite Sensor reactor
+reactor SensorReactor {
+    output value: int
+
+    adc = new ADCReactor()
+    filter = new FilterReactor()
+
+    adc.reading -> filter.raw
+    filter.filtered -> value
+}
+
+// Controller reactor
+reactor ControllerReactor {
+    input sensor_value: int
+    output control_signal: int
+
+    state setpoint: int = 50
+
+    reaction(sensor_value) -> control_signal {=
+        int error = self->setpoint - sensor_value->value;
+        lf_set(control_signal, error);
+    =}
+}
+
+// Leaf reactors in the Actuator subsystem
+reactor PWMReactor {
+    input signal: int
+
+    reaction(signal) {=
+        printf("PWM output: %d\n", signal->value);
+    =}
+}
+
+reactor SafetyReactor {
+    input signal: int
+    output safe_signal: int
+
+    reaction(signal) -> safe_signal {=
+        // Clamp to safe range
+        int val = signal->value;
+        if (val > 100) val = 100;
+        if (val < -100) val = -100;
+        lf_set(safe_signal, val);
+    =}
+}
+
+// Composite Actuator reactor
+reactor ActuatorReactor {
+    input command: int
+
+    pwm = new PWMReactor()
+    safety = new SafetyReactor()
+
+    command -> safety.signal
+    safety.safe_signal -> pwm.signal
+}
+
+// Main reactor (root of hierarchy)
+@platform_native
+main reactor {
+    sensor = new SensorReactor()
+    controller = new ControllerReactor()
+    actuator = new ActuatorReactor()
+
+    sensor.value -> controller.sensor_value
+    controller.control_signal -> actuator.command
+}

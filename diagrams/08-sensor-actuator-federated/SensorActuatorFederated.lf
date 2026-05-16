@@ -1,0 +1,47 @@
+/**
+ * Diagram: Two-Federate System with Network Channels
+ * Source: docs/design/federated.md
+ *
+ * Shows a sensor-actuator system distributed across two federates:
+ * - Federate A: Sensor Reactor
+ * - Federate B: Actuator Reactor
+ * Connected via TCP/IP network
+ */
+target uC
+
+reactor Sensor {
+    output out: int
+
+    timer sample(0, 50 msec)
+    state reading: int = 0
+
+    reaction(sample) -> out {=
+        lf_set(out, self->reading++);
+    =}
+}
+
+reactor Actuator {
+    input in: int
+
+    reaction(in) {=
+        printf("Actuator driving: %d\n", in->value);
+    =}
+}
+
+// Federated reactor with network configuration
+federated reactor System {
+    // Define TCP interface on Federate A (Sensor)
+    @platform_native
+    @interface_tcp(name="net0", address="192.168.1.10")
+    a = new Sensor()
+
+    // Define TCP interface on Federate B (Actuator)
+    @platform_native
+    @interface_tcp(name="net0", address="192.168.1.20")
+    @maxwait(100 msec)
+    b = new Actuator()
+
+    // Federated connection with network delay budget
+    @link(left="net0", right="net0", server_side="right", server_port=1042)
+    a.out -> b.in after 10 msec
+}

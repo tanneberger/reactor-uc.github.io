@@ -1,0 +1,54 @@
+/**
+ * Diagram: Basic Reactor Component Structure
+ * Source: docs/design/index.md
+ *
+ * Shows the internal structure of a single reactor:
+ * Input Port -> Reaction -> Output Port
+ *                  |
+ *                  v
+ *               State
+ */
+target uC
+
+reactor BasicReactor {
+    input in: int
+    output out: int
+
+    // Private state
+    state count: int = 0
+
+    // Reaction: reads input, modifies state, produces output
+    reaction(in) -> out {=
+        int value = in->value;
+        self->count++;
+        lf_set(out, value * self->count);
+    =}
+}
+
+reactor Source {
+    output out: int
+    timer t(0, 100 msec)
+    state val: int = 1
+
+    reaction(t) -> out {=
+        lf_set(out, self->val++);
+    =}
+}
+
+reactor Sink {
+    input in: int
+
+    reaction(in) {=
+        printf("Sink received: %d\n", in->value);
+    =}
+}
+
+@platform_native
+main reactor {
+    src = new Source()
+    r = new BasicReactor()
+    sink = new Sink()
+
+    src.out -> r.in
+    r.out -> sink.in
+}
