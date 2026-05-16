@@ -83,6 +83,3 @@ rm -rf src-gen build
 |---------|------|-------------|
 | UART | Polled | Serial point-to-point |
 
-## Debugging
-
-See [Getting Started](getting-started.md) for detailed debugging instructions using picoprobe and OpenOCD.
