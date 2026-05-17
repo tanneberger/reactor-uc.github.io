@@ -71,6 +71,101 @@ typedef struct {
 } SystemEvent;
 ```
 
+## System Events
+
+System events are a special event type designed for scheduling system activities that are **unordered with respect to reactor events**. They handle runtime infrastructure coordination rather than application logic.
+
+### Purpose and Sources
+
+System events originate from built-in coordinators that manage federated runtime behavior:
+
+| Coordinator | Purpose | When Used |
+|-------------|---------|-----------|
+| **StartupCoordinator** | Synchronizes startup across federated participants | Federation initialization |
+| **ShutdownCoordinator** | Coordinates graceful shutdown timing | Program termination |
+| **ClockSynchronization** | Exchanges timestamp data for distributed clock sync | Continuous during federation |
+
+Each coordinator extends `SystemEventHandler` and schedules events through the dedicated system event interface:
+
+```c
+struct SystemEventHandler {
+  void (*handle)(SystemEventHandler* self, SystemEvent* event);
+  PayloadPool* payload_pool;
+};
+```
+
+### Separate Event Queue
+
+System events are stored in a **separate queue** from regular events. The scheduler maintains both queues and checks them independently when determining the next event to process.
+
+### Handling Differences
+
+System events follow a fundamentally different execution path than regular events:
+
+| Aspect | Regular Events | System Events |
+|--------|----------------|---------------|
+| **Queue** | `event_queue` | `system_event_queue` |
+| **Scheduling validation** | Extensive checks (past/future/stop tag) | Minimal validation |
+| **Handler type** | `Trigger*` with `prepare()` function | `SystemEventHandler*` with `handle()` function |
+| **Tag acquisition** | Waits for `env->acquire_tag()` in federations | Skips tag acquisition entirely |
+| **Reaction involvement** | Queues and executes reactions by level | Bypasses reaction system completely |
+| **Equal tags** | Prioritized over system events | Processed after regular events |
+
+### Scheduler Processing Logic
+
+```mermaid
+graph TD
+    subgraph "Regular Event Path"
+        A1[Pop from event queue] --> A2[Prepare trigger]
+        A2 --> A3[Acquire tag in federation]
+        A3 --> A4[Add reactions to reaction queue]
+        A4 --> A5[Execute reactions by level]
+        A5 --> A6[Cleanup triggers]
+    end
+
+    subgraph "System Event Path"
+        B1[Pop from system event queue] --> B2[Invoke handler directly]
+        B2 --> B3[Continue to next event]
+    end
+```
+
+When both queues have pending events, the scheduler compares their next tags:
+
+```c
+next_tag = event_queue->next_tag();
+next_system_tag = system_event_queue->next_tag();
+
+// Handle lower tag first; if equal, prioritize normal events
+if (lf_tag_compare(next_tag, next_system_tag) > 0) {
+  // Process system event
+  Scheduler_pop_system_events_and_handle(self, next_system_tag);
+} else {
+  // Process regular event with full reaction execution
+  // ... prepare triggers, execute reactions, cleanup
+}
+```
+
+System events are processed by directly invoking their handler without going through the reaction queue:
+
+```c
+void Scheduler_pop_system_events_and_handle(Scheduler* self, tag_t tag) {
+  do {
+    SystemEvent* event;
+    system_event_queue->pop(&event);
+    event->handler->handle(event->handler, event);
+  } while (tag == system_event_queue->next_tag());
+}
+```
+
+### Why Separate Handling?
+
+System events require different semantics because:
+
+1. **No ordering guarantees needed**: Coordination messages don't need deterministic ordering with application events
+2. **No reaction dependencies**: System activities don't participate in the reactor dependency graph
+3. **Simpler scheduling**: Infrastructure coordination benefits from minimal overhead
+4. **Tag acquisition bypass**: Clock sync and startup messages must arrive before tag acquisition completes
+
 ## Reaction Queue
 
 When events fire, they trigger reactions. The **reaction queue** organizes reactions by their topological level:
